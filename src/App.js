@@ -6,8 +6,6 @@ import Messages  from "./features/messages/Messages"
 import Users from "./features/users/Users"
 import Signin from './features/signin/Signin'
 
-//import { Counter } from './features/counter/Counter';
-
 import "./css/customBS.min.css"
 
 function App() {

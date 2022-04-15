@@ -4,23 +4,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import "./Messages.css";
 import {Modal, Button } from 'react-bootstrap';
 import api from '../../services/api';
-
 import { logout } from '../login/loginSlice';
-import { rst, add, del, upd, all, selectMessages, thunkGetMessages } from './messagesSlice'
-
+import { all, rst, add, del, upd, selectMessages, thunkGetMessages } from './messagesSlice'
 import TableMessages from './table'
 
 const Messages = () => {
 
   const reduxMessages = useSelector(selectMessages);
 
-  console.log("*********************************")
-  console.log(reduxMessages)
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { state } = useLocation();
+  const { state } = useLocation(); //data from login
   const userID = state.uid
   const userName = state.name
 
@@ -29,8 +24,8 @@ const Messages = () => {
     details: ""
   };
   const [message, setMessage] = useState(initialStateOneMessage);
-  const [messages, setMessageS] = useState([]);
-  const [visible, setVisible] = useState(false);
+  const [compMessages, setCompMessages] = useState([]);
+  const [visible, setVisible] = useState(false);//Modal
   
   // Log Out
   function logOut() {
@@ -42,8 +37,8 @@ const Messages = () => {
   //--------------------------------- get all messages form user 'userID'
   async function getAllMessages(userID) {
     const messagesList = await api.getMessages(userID)
-    setMessageS(messagesList);    // component list of messages
-    //dispatch(all(messagesList));  // Redux list of messages
+    setCompMessages(messagesList);    // component list of messages
+    dispatch(all(messagesList));
   }
 
   //-------------------------------- handle all inputs
@@ -62,18 +57,16 @@ const Messages = () => {
       console.log('error', error);
       throw(error);
     }
-    setMessageS((messages) => [...messages, newMessage]);
-
+    setCompMessages((compMessages) => [...compMessages, newMessage]);
     dispatch(add(newMessage))  // Redux list of messages
-
     setMessage(initialStateOneMessage);
   }
 
   //-------------------------------- call modal to edit message
   async function editMessage(msgID) {
-    const index = messages.findIndex( element =>  element.uid === msgID) 
+    const index = compMessages.findIndex( element =>  element.uid === msgID) 
 
-    setMessage(messages[index])
+    setMessage(compMessages[index])
     setVisible(true)
   }
   
@@ -87,7 +80,8 @@ const Messages = () => {
       console.log('error', error);
       throw(error);
     }
-    setMessageS(messages.map(elm => elm.uid === message.uid ? message : elm))
+    // Update the edited message and just copy all the rest
+    setCompMessages(compMessages.map(elm => elm.uid === message.uid ? message : elm))
     dispatch(upd(message));  // Redux list of messages
     setMessage(initialStateOneMessage);
   }
@@ -106,7 +100,7 @@ const Messages = () => {
 
   useEffect(() => {
     getAllMessages(userID);
-    dispatch(thunkGetMessages(userID));
+    //dispatch(thunkGetMessages(userID));
   }, []);
 
   return (
@@ -155,8 +149,8 @@ const Messages = () => {
           <button className="btn btn-primary" type="submit">Save</button>
         </div>
       </form>
-      {messages.length > 0 ? (
-        <TableMessages messages={messages} delMessage={delMessage} editMessage={editMessage}/>
+      {compMessages ? (
+        <TableMessages messages={compMessages} delMessage={delMessage} editMessage={editMessage}/>
         ) : (
           
           <div className="container-fluid">

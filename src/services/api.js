@@ -1,41 +1,26 @@
 import axios from 'axios';
 import { url } from  './URL'
 
+function errorBE(error){
+    console.log("Erro no back end !", error)
+    throw (error);
+}
+
 class Api {
 
 // ---------------- U S E R S        
-    adminLogin({name, password}) {        
-        if (name === 'admin' && password === 'admin') {
-            return true;
-        }
-        return false;
-    }
-
     login({name, password}) {        
         // If user/pass are OK, B.E. returns userID
-        console.log(name, password)        
         return axios.post(`${url}/login`, {
             name: name,
             password: password
         })
         .then(
             (response) => {
-
                 return response.data
-
-                // if (url.includes("heroku")){
-                //     console.log("remoto:", response.data)
-                //     return response.data
-                // }    
-                // else {
-                //     console.log("local:", response.data)
-                //     return response.data
-                // }    
             },
-            (error) => {
-                console.log("Erro no back end !", error)
-                throw (error);
-    })}
+            (error) => errorBE(error))
+    }
 
     addUser(name, password1) {
         return axios.post(`${url}/user/store`, {
@@ -46,10 +31,44 @@ class Api {
             (response) => {
                 return response.data
             },
-            (error) => {
-                console.log("Erro no back end !", error)
-                throw (error);
-    })}
+            (error) => errorBE(error))
+    }
+            
+    getUsers() {
+        return axios.get(`${url}/users`)
+        .then(
+            (response) => {
+                return response.data
+            },
+        (error) => {
+                console.log("Erro no back end !", error);
+                return []
+            }
+        )
+    }
+
+    // Save edited user
+    updtUser({name, password, uid}) {
+        return axios.put(`${url}/user/${uid}`, {
+            name,
+            password
+        })
+        .then(
+            (response) => {
+            return response.data
+        },
+        (error) => errorBE(error))
+    }
+
+    // Remove user
+    delUser(uid) {
+        return axios.delete(`${url}/user/${uid}`)
+        .then(
+            (response) => {
+                return response.data
+        },
+        (error) => errorBE(error))
+    }    
 
 // ---------------- M E S S A G E S     
     // Store new messages
@@ -65,10 +84,7 @@ class Api {
             (response) => {
                 return response.data;
             },
-        (error) => {
-            console.log("Erro no back end !", error);
-            throw (error);
-        })
+        (error) => errorBE(error))
     }
 
     // Get all users's messages
@@ -91,10 +107,7 @@ class Api {
             (response) => {
                 return response.data
         },
-        (error) => {
-            console.log("Erro no back end !")
-            throw (error)
-        })
+        (error) => errorBE(error))
     }    
 
     // Save edited  message
@@ -109,12 +122,8 @@ class Api {
             (response) => {
                 return response.data
         },
-        (error) => {
-            console.log("Erro no back end !")
-            throw (error)
-        })
+        (error) => errorBE(error))
     }    
-
 }
 
 export default new Api();

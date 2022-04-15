@@ -1,30 +1,58 @@
-import { createSlice, createEntityAdapter } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk  } from '@reduxjs/toolkit';
+import { url } from '../../services/URL'
+import axios from 'axios';
 
-// Adapter dos produtos
-/*
-{
+/*{
     id: UUID
     name: 'bla',
     password: 'bla bla bla,
-}
-*/
-const adapter = createEntityAdapter({
-    selectId: user => user.id,
-});
+}*/
+
+export const thunkGetUsers = createAsyncThunk(
+    'users/thunkGetUsers',
+    async () => {
+        const response = await axios.get(`${url}/users`)
+        console.log("Thunk ---->", response.data)
+        return response.data
+    }
+)
 
 const usersSlice = createSlice({
-    name: 'userss',
-    initialState: adapter.getInitialState([]),
+    name: 'users',
+    initialState: {
+        users: [],
+        status: null
+    },
     reducers: {
-       
+        all (state, {payload}) {  // payload is the list of users
+            return payload
+        },
+        del (state, {payload: userUID})  {  // payload is the UID of the user 
+            return state = state.filter((id) => id !== userUID)
+        },
+        upd (state,{payload}) { // payload is the edited user object
+            return state = state.map((elm) => (elm.uid === payload.uid ? payload : elm))
+        },
+    },
+    extraReducers: {
+        [thunkGetUsers.pending]: (state) => {
+            state.status = 'Pending';
+            console.log("Pending");
+        },
+        [thunkGetUsers.rejected]: (state) => {
+            state.status = 'Rejected';
+            console.log("Rejected!");
+        },
+        [thunkGetUsers.fulfilled]: (state, { payload }) => {
+            state.messages = payload;
+            state.status = 'Success';
+            console.log("Fetched Successfully!");
+        },
     }
 });
 
-// exporto as ações
-export const {  } = usersSlice.actions;
+export const { del, upd, all } = usersSlice.actions;
 
-// exportar o reducer
+export const selectUsers = (state) => state.users;
+
 export default usersSlice.reducer;
-
-// exportar o seletor para ler todos os usuarios
-export const {  } =    adapter.getSelectors(state => state.users);

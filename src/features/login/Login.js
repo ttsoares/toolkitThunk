@@ -1,15 +1,16 @@
 import React from 'react'
-
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-
 import api from '../../services/api';
 import { login } from './loginSlice';
+import md5 from 'md5';
 
 import "./index.css";
 
 const Login = () => {
+
+  console.clear(); 
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -30,13 +31,15 @@ const Login = () => {
     event.preventDefault();
     
     // Test if is 'admin'
-    const admin = api.adminLogin(user);
-    if (admin) {
+    const password = md5(`${user.name}${user.password}`)
+    if (user.name === 'admin' && password === 'f14cf4eca31dac45702e5b4a24975337') {
       navigate('Users')
+    return
     }
 
     // Test user credentials
     let userOK
+
     try {
       userOK = await api.login(user)
     } catch (error) {

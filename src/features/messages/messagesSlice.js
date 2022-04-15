@@ -13,50 +13,54 @@ export const thunkGetMessages = createAsyncThunk(
     'messages/thunkGetMessages',
     async (userID) => {
         const response = await axios.get(`${url}/messages/${userID}`)
+        console.log("Thunk ---->", response.data)
         return response.data
     }
 )
 
 const messagesSlice = createSlice({
     name: 'messages',
-    initialState: [],
+    initialState: {
+        messages: [],
+        status: null
+    },
     reducers: {
-        add (state, {payload}) {  //paylad é a nova menssages
-        state.push(payload)
+        add (state, {payload}) {  //paylad is the new message
+            state.push(payload)
         },
-        all (state, {payload}) {  // payload é a lista de todas as mesangens
-        return payload
+        all (state, {payload}) {  // payload is a list of messages
+            return payload
         },
-        del (state, {payload: index})  {  // payload é o indice da mesange no array 
-        state.splice(index, 1)
+        del (state, {payload: messageUID})  {  // payload is the UID of the message in state 
+            return state = state.filter((id) => id !== messageUID)
         },
-        upd (state,{payload}) { // payload é toda a mensagem a ser modificada
-        return state.map(elm => (elm.uid === payload.uid ? payload : elm))
+        upd: (state, {payload}) => { // payload is the edited message
+            return state = state.map((elm) => (elm.uid === payload.uid ? payload : elm))
         },
         rst () { 
             return []
         }
     },
     extraReducers: {
-    [thunkGetMessages.pending]: () => {
-        console.log("Pending");
-    },
-    [thunkGetMessages.rejected]: () => {
-        console.log("Rejected!");
-    },
-    [thunkGetMessages.fulfilled]: (state, { payload }) => {
-        console.log("Fetched Successfully!");
-        return { ...state, messages: payload };
-    },
+        [thunkGetMessages.pending]: (state) => {
+            state.status = 'Pending';
+            console.log("Pending");
+        },
+        [thunkGetMessages.rejected]: (state) => {
+            state.status = 'Rejected';
+            console.log("Rejected!");
+        },
+        [thunkGetMessages.fulfilled]: (state, { payload }) => {
+            state.messages = payload;
+            state.status = 'Success';
+            console.log("Fetched Successfully!");
+        },
     }  
 });
 
-// exporto as ações
 export const { add, del, upd, all, rst } = messagesSlice.actions;
 
-// Exportar o seletor de mensagens
 export const selectMessages = (state) => state.messages;
 
-// exporta os reducers para o rootReducer
 export default messagesSlice.reducer;
 
