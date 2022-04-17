@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+//import { useDispatch, useSelector } from 'react-redux';
 import "./Users.css";
 import {Modal, Button } from 'react-bootstrap';
 import api from '../../services/api';
-import { all, del, upd, selectUsers, thunkGetUsers } from './usersSlice'
+//import { all, del, upd, selectUsers, thunkGetUsers } from './usersSlice'
+import { all, del, upd, selectUsers } from './usersSlice'
 import TableUsers from './table'
+import md5 from 'md5'
 
 const Users = () => {
 
-  const reduxUsers = useSelector(selectUsers);
+  //const reduxUsers = useSelector(selectUsers);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const initialStateOneUser = {
     name: "",
-    password: ""
+    password: "",
+    uid: ""
   };
   const [ user, setUser ] = useState(initialStateOneUser);
   const [ compUsers, setCompUsers ] = useState([]);
@@ -32,7 +36,7 @@ const Users = () => {
     async function getAllUsers() {
       const usersList = await api.getUsers()
       setCompUsers(usersList);    // component list of users
-      dispatch(all(usersList));  // replaced by useThunk
+      dispatch(all(usersList));  
     }
 
     //-------------------------------- handle all inputs
@@ -53,15 +57,25 @@ const Users = () => {
   async function handleSubmitEdit(event) {
     event.preventDefault();
     setVisible(false);
+    const encryptMassword = md5(`${user.name}${user.password}`)
+    const newUser = {name: user.name, password: encryptMassword, uid:user.uid}
+    console.debug("New User :: ", newUser)
+
     try {
-      await api.updtUser(user);
+      await api.updtUser({
+        name: user.name,
+        password: encryptMassword,
+        uid: user.uid
+      });
     } catch (error) {
       console.log('error', error);
       throw(error);
     }
+  // Update the edited user and just copy all the rest
     setCompUsers(compUsers.map(elm => elm.uid === user.uid ? user : elm))
     dispatch(upd(user));  // Redux list of users
     setUser(initialStateOneUser);
+    getAllUsers();
   }
 
   //-------------------------------- remove user
@@ -94,7 +108,6 @@ const Users = () => {
             Log Out
         </button>
           </header>
-          {console.log(compUsers)}
           {compUsers.length > 0 ? (
             <TableUsers users={compUsers} delUser={delUser} editUser={editUser}/>
             ) : (

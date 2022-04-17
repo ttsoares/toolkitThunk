@@ -49,6 +49,7 @@ class Api {
 
     // Save edited user
     updtUser({name, password, uid}) {
+        console.debug("API: ", name,password,uid)
         return axios.put(`${url}/user/${uid}`, {
             name,
             password

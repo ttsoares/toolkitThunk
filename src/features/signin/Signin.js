@@ -2,8 +2,8 @@ import React,{useState} from 'react';
 import {Modal, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import './Signin.css';
-
 import api from '../../services/api';
+import md5 from 'md5';
 
 //===========================================
 function Signin() {
@@ -58,8 +58,10 @@ function Signin() {
       return
     }
 
+    const encryPassword = md5(`${user.name}${user.password1}`)
+
     try {
-      await api.addUser(user.name, user.password1);
+      await api.addUser(user.name, encryPassword);
       setVisible(false)
       setvisSuccess(true)
     } catch (error){

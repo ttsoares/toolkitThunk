@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+//import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import "./Messages.css";
 import {Modal, Button } from 'react-bootstrap';
 import api from '../../services/api';
 import { logout } from '../login/loginSlice';
-import { all, rst, add, del, upd, selectMessages, thunkGetMessages } from './messagesSlice'
+//import { all, rst, add, del, upd, selectMessages, thunkGetMessages } from './messagesSlice'
+import { all, rst, add, del, upd } from './messagesSlice'
 import TableMessages from './table'
 
-const Messages = () => {
+const Messages = (props) => {
 
-  const reduxMessages = useSelector(selectMessages);
+  //const reduxMessages = useSelector(selectMessages);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -31,6 +33,7 @@ const Messages = () => {
   function logOut() {
     dispatch(rst());
     dispatch(logout(state));
+    props.logout() // back to App to turn off logged state
     navigate('/')
   }
   
@@ -101,7 +104,8 @@ const Messages = () => {
   useEffect(() => {
     getAllMessages(userID);
     //dispatch(thunkGetMessages(userID));
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [message]);
 
   return (
     <div className='main_messages'>

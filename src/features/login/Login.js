@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react'
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -5,10 +6,11 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { login } from './loginSlice';
 import md5 from 'md5';
+import {Modal, Button } from 'react-bootstrap';
 
 import "./index.css";
 
-const Login = () => {
+const Login = (props) => {
 
   console.clear(); 
 
@@ -20,6 +22,7 @@ const Login = () => {
     password: ""
   }
   const [user, setUser] = useState(initialState)
+  const [error, setError] = useState(false)
 
   //--------------------------------
   function handleInput(event) {
@@ -33,34 +36,40 @@ const Login = () => {
     // Test if is 'admin'
     const password = md5(`${user.name}${user.password}`)
     if (user.name === 'admin' && password === 'f14cf4eca31dac45702e5b4a24975337') {
+      props.respLogin('admin')
       navigate('Users')
     return
     }
 
     // Test user credentials
     let userOK
+    const cryptPassword = md5(`${user.name}${user.password}`)
 
     try {
-      userOK = await api.login(user)
+      userOK = await api.login({
+        name: user.name,
+        password: cryptPassword
+      }) 
     } catch (error) {
       console.log('error', error)
-      throw (error)
+      //throw (error)
     }
 
     if (userOK) {
       dispatch(login(user));
-
+      props.respLogin('user')
       navigate('Messages', { state: {uid: userOK, name: user.name}})
       return
     }
 
     // No user, no admin : erro message
+    setError(true)
+
     console.log("Acesso negado.")
     return
   }
 
   return (
-
     <div className='main_login'>
     <header className="d-flex justify-content-center">
       <h1>Log In</h1>
@@ -111,72 +120,24 @@ const Login = () => {
       </div>
     </section>
 {/* ---------------------------------------------------------------------- */}
-    <div
-      className="modal fade"
-      id="credentials"
-      tabIndex="-1"
-      aria-labelledby="exampleModalLabel"
-      aria-hidden="true"
-    >
-      <div className="modal-dialog">
-        <div className="modal-content bg-info p-2 text-white bg-opacity-75">
-          <div className="modal-header">
-            <h5 className="modal-title">Credenciais Invalidas</h5>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="modal-body">
-            Errou a grafia do nome ou senha...
-          </div>
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      className="modal fade"
-      id="empty_field"
-      tabIndex="-1"
-      aria-labelledby="exampleModalLabel"
-      aria-hidden="true"
-    >
-      <div className="modal-dialog">
-        <div className="modal-content bg-info p-2 text-white bg-opacity-75">
-          <div className="modal-header">
-            <h5 className="modal-title">Campos em Branco</h5>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="modal-body">Um ous mais campos ficaram em branco</div>
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
+    <Modal show={error}  centered size="lg" onHide={() => setError(false)} >
+        <Modal.Header closeButton >
+          <Modal.Title>Ocorreu algum erro !</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <section className="externa">
+            <div className="interna">
+              <form className="fs-4 fw-bold mt-3" onSubmit={() => setError(false)}>
+                <div className="d-grid mt-3">
+                <Button className="rounded-pill" type='submit'>Temtar novamente ?</Button>
+                </div>          
+              </form>
+            </div>
+          </section>
+        </Modal.Body>
+      </Modal>
+  </div>
   )
 }
 export default Login
