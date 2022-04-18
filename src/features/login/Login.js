@@ -102,6 +102,7 @@ const Login = (props) => {
 
           <div className="d-grid mt-3">
             <button
+              disabled={!user.name || !user.password}
               id="myBtn"
               className="btn btn-primary rounded-pill"
               typeof='submit'

@@ -111,6 +111,8 @@ function Signin() {
                 />
                 <div className="d-grid mt-3">
                   <button
+                     disabled={!user.name || !user.password1 
+                      || user.password1 !== user.password2}
                     id="myBtn"
                     className="btn btn-primary rounded-pill"
                     typeof='submit'
