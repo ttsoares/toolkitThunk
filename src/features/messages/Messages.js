@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate} from 'react-router-dom';
 //import { useDispatch, useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import "./Messages.css";
@@ -28,11 +28,14 @@ const Messages = (props) => {
   const [message, setMessage] = useState(initialStateOneMessage);
   const [compMessages, setCompMessages] = useState([]);
   const [visible, setVisible] = useState(false);//Modal
+  //only calls the API when is really needed.
+  const [mudou, setMudou] = useState(0)
   
   // Log Out
   function logOut() {
     dispatch(rst());
     dispatch(logout(state));
+    localStorage.clear();
     props.logout() // back to App to turn off logged state
     navigate('/')
   }
@@ -63,6 +66,7 @@ const Messages = (props) => {
     setCompMessages((compMessages) => [...compMessages, newMessage]);
     dispatch(add(newMessage))  // Redux list of messages
     setMessage(initialStateOneMessage);
+    setMudou(mudou+1);
   }
 
   //-------------------------------- call modal to edit message
@@ -87,6 +91,7 @@ const Messages = (props) => {
     setCompMessages(compMessages.map(elm => elm.uid === message.uid ? message : elm))
     dispatch(upd(message));  // Redux list of messages
     setMessage(initialStateOneMessage);
+    setMudou(mudou+1);
   }
 
   //-------------------------------- remove message
@@ -94,18 +99,19 @@ const Messages = (props) => {
     try {
       await api.delMessage(msgID);
       dispatch(del(msgID));  // Redux list of messages
-      getAllMessages(userID);
+      setMudou(mudou+1);
     } catch (err){
       console.log('error', err);
       throw(err);
     }
   }    
 
-  useEffect(() => {
+  useEffect(
+    () => {
     getAllMessages(userID);
     //dispatch(thunkGetMessages(userID));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [message]);
+    }, [mudou]
+  );
 
   return (
     <div className='main_messages'>

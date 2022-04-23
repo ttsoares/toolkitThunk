@@ -7,12 +7,14 @@ import api from '../../services/api';
 import { login } from './loginSlice';
 import md5 from 'md5';
 import {Modal, Button } from 'react-bootstrap';
+import jwt_decode from "jwt-decode";
 
 import "./index.css";
 
 const Login = (props) => {
 
-  console.clear(); 
+  console.clear();
+  localStorage.clear();
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -30,35 +32,60 @@ const Login = (props) => {
     setUser({ ...user, [name]: value })
   }
 
+  //--------------------------------
   async function handleSubmit(event) {
     event.preventDefault();
-    
-    // Test if is 'admin'
+
+    // Create admin hash
     const password = md5(`${user.name}${user.password}`)
+
     if (user.name === 'admin' && password === 'f14cf4eca31dac45702e5b4a24975337') {
+      let replyToken
+      // Send to BE 'admin'  and the entered password  
+      try {
+        replyToken = await api.testAdmin('admin', user.password) 
+      } catch (error) {
+        console.log('Ocorreu algum erro', error)
+      }
+      const { token: tokenAdmin } = replyToken
+
+      if (!tokenAdmin) {
+        // BE did not approve the authentication
+        setError(true)
+        return
+      }
+
+      localStorage.setItem('ADM', tokenAdmin);
+      // Reply to App with 'admin' to open the route
       props.respLogin('admin')
       navigate('Users')
     return
     }
 
     // Test user credentials
-    let userOK
+    let responseBE
     const cryptPassword = md5(`${user.name}${user.password}`)
-
     try {
-      userOK = await api.login({
+      responseBE = await api.login({
         name: user.name,
         password: cryptPassword
-      }) 
+      })
     } catch (error) {
-      console.log('error', error)
+      console.log('Ocorreu algum erro', error)
       //throw (error)
     }
 
-    if (userOK) {
-      dispatch(login(user));
-      props.respLogin('user')
-      navigate('Messages', { state: {uid: userOK, name: user.name}})
+    const { token } = responseBE
+    localStorage.setItem('token', token);
+    const {id, name } = jwt_decode(token);
+
+    if (id) {
+      dispatch(login({
+        name, id
+      }));
+      props.respLogin('user') // to App decidade the route to use
+      navigate('Messages', { state: {uid: id, name: name}})
+
       return
     }
 
@@ -132,7 +159,7 @@ const Login = (props) => {
               <form className="fs-4 fw-bold mt-3" onSubmit={() => setError(false)}>
                 <div className="d-grid mt-3">
                 <Button className="rounded-pill" type='submit'>Temtar novamente ?</Button>
-                </div>          
+                </div>
               </form>
             </div>
           </section>

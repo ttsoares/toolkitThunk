@@ -1,5 +1,6 @@
 import React, {useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+//import { PrivateRoute } from './auth/PrivateRoute'
 
 import Login from "./features/login/Login"
 import Messages  from "./features/messages/Messages"
@@ -13,7 +14,6 @@ function App() {
 
   function respLogin(resp) {
     if (resp === 'admin') {
-      console.log("A D M I N  ! !")
       setAdmin(true)
     }
     if (resp === 'user') {
@@ -39,10 +39,10 @@ function App() {
           {admin && (
             < Route path="Users" element={ <Users logout={() => setAdmin(false)} /> } />
           )}
-
+          
           {logedUser && (
             < Route path="Messages" element={ <Messages logout={() => setlogedUser(false)}/> } />
-          )}
+          )}          
 
           < Route path="/" element={ <Login respLogin={respLogin}/> } />
           
